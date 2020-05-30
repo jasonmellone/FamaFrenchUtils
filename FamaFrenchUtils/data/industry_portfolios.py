@@ -24,13 +24,26 @@ def extract_date(arg):
     return dt + datetime.timedelta(i + 1)
 
 
-def industry_portfolio_csv(N_portfolios=49, cleanup=True, weighting='value'):
+def get_line_for_portfolio_group(arg, text_to_find=''):
+    for elem in range(0, len(arg)):
+        if text_to_find in arg[elem]:
+            return elem
+
+    return elem
+
+
+def industry_portfolio_csv(N_portfolios=49, cleanup=True, weighting='equal'):
     """
 
     :param N_portfolios:
     :param cleanup:
     :return:
     """
+
+    if weighting=='value':
+        text_to_find = 'Average Value Weighted Returns'
+    elif weighting=='equal':
+        text_to_find = 'Average Equal Weighted Returns'
     url = 'https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/{N}_Industry_Portfolios_CSV.zip'.format(
         N=N_portfolios)
 
@@ -49,7 +62,10 @@ def industry_portfolio_csv(N_portfolios=49, cleanup=True, weighting='value'):
     if cleanup:
         os.unlink(fpath)
 
-    lines = str(uz[0]).split('\\r\\n')[11:]
+    lines = str(uz[0]).split('\\r\\n')
+    line_for_group = get_line_for_portfolio_group(lines,text_to_find)
+
+    lines = lines[line_for_group+1:]
 
     lines = [l.split(',') for l in lines]
 
@@ -64,7 +80,7 @@ def industry_portfolio_csv(N_portfolios=49, cleanup=True, weighting='value'):
     df = df.replace(' -99.99', np.nan)
     df = df.astype(float)
 
-    return df/100.
+    return df / 100.
 
 
 if __name__ == '__main__':
